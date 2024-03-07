@@ -11,4 +11,6 @@ namespace App\Repositories\Contracts;
 interface BaseRepository
 {
 
+    public function updateOrCreate(array $attributes): void;
+
 }

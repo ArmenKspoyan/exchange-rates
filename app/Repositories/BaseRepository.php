@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Repositories\Contracts\BaseRepository as BaseRepositoryContract;
+use Illuminate\Support\Arr;
 
 abstract class BaseRepository implements BaseRepositoryContract
 {
@@ -15,5 +16,17 @@ abstract class BaseRepository implements BaseRepositoryContract
     {
         $this->model = $model;
     }
+
+
+    public function updateOrCreate(array $attributes): void
+    {
+        foreach ($attributes as $currencyData) {
+            $this->model->updateOrCreate(
+                ['char_code' => $currencyData['char_code']],
+                Arr::only($currencyData, ['name', 'value'])
+            );
+        }
+    }
+
 
 }

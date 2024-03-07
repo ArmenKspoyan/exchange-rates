@@ -5,7 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Currency extends Model
+class CurrencyRate extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'char_code',
+        'name',
+        'value',
+    ];
 }
