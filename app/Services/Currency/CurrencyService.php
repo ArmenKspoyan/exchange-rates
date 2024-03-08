@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Services\Currency;
 
 use App\Repositories\Contracts\Currency\ICurrencyRepository;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Log;
 
 class CurrencyService
@@ -23,31 +23,43 @@ class CurrencyService
      * Fetches currency exchange rates.
      *
      * @return array
-     * @throws \Exception
      */
     public function getCurrencyRates(): array
     {
-        try {
-            $response = Http::get(env('CURRENCY_URL'));
-            if (!$response->successful()) {
-                throw new \Exception('Failed to fetch currency data.');
-            }
-            $data = simplexml_load_string($response->body());
-            $currencies = [];
-            foreach ($data->Valute as $value) {
-                $currencies[] = [
-                    'char_code' => (string)$value->CharCode,
-                    'name' => (string)$value->Name,
-                    'value' => (float)$value->Value,
-                ];
-            }
-            $this->currencyRepository->updateOrCreate($currencies);
-            return $currencies;
-
-        } catch (RequestException $e) {
-            Log::error('Failed to fetch currency data: ' . $e->getMessage());
-            throw new \Exception('Failed to fetch currency data: ' . $e->getMessage());
+        $response = $this->getResponse();
+        $data = simplexml_load_string($response->body());
+        $currencies = [];
+        foreach ($data->Valute as $value) {
+            $currencies[] = [
+                'char_code' => (string)$value->CharCode,
+                'name' => (string)$value->Name,
+                'value' => (float)$value->Value,
+            ];
         }
+        $this->currencyRepository->updateOrCreate($currencies);
+        return $currencies;
+    }
+
+
+    private function getResponse(): ?Response
+    {
+        $retryAttempts = 3;
+        $timeout = 10;
+
+        for ($attempt = 1; $attempt <= $retryAttempts; $attempt++) {
+            try {
+                $response = Http::timeout($timeout)->get(env('CURRENCY_URL'));
+
+                if ($response->successful()) {
+                    return $response;
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to fetch currency data: ' . $e->getMessage());
+            }
+
+            usleep(500000);
+        }
+        return null;
     }
 
 }

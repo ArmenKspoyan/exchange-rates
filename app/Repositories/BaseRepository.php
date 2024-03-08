@@ -20,6 +20,7 @@ abstract class BaseRepository implements BaseRepositoryContract
 
     public function updateOrCreate(array $attributes): void
     {
+//        TODO it is not recommended to use a foreach
         foreach ($attributes as $currencyData) {
             $this->model->updateOrCreate(
                 ['char_code' => $currencyData['char_code']],

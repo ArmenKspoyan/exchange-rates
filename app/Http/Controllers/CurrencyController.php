@@ -18,7 +18,6 @@ class CurrencyController extends Controller
      * Get currency rates from the service.
      *
      * @return JsonResponse
-     * @throws \Exception
      */
     public function index(): JsonResponse
     {
